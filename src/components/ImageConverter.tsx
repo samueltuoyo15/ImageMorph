@@ -79,7 +79,7 @@ export default function ImageConverter() {
     if (!selectedImage) return;
     setIsConverting(true);
 
-    const formats: ImageFormat[] = ['png', 'jpeg', 'webp'];
+    const formats: ImageFormat[] = ['png', 'jpeg', 'webp','svg'];
     const converted: ConvertedImage[] = [];
 
     for (const format of formats) {
