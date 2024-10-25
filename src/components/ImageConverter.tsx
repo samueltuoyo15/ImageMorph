@@ -1,10 +1,14 @@
-import React, { useState, useCallback, useEffect } from 'react';
-import { Upload, Image as ImageIcon, Sun, Moon, Download, Trash2, Settings, Crop, ZoomIn, RotateCw } from 'lucide-react';
+import React, { useState, useCallback } from 'react';
+import { Upload, Image as ImageIcon, Download, Trash2, Settings, Crop, RotateCw } from 'lucide-react';
 import SettingsMenu from './SettingsMenu';
 import { ImageFormat, ConvertedImage, ImageSettings } from '../types/image';
+import Cropper from 'react-easy-crop';
 
-export default function ImageConverter() {
-  const [isDarkMode, setIsDarkMode] = useState(false);
+interface ImageConverterProps {
+  isDarkMode: boolean;
+}
+
+export default function ImageConverter({ isDarkMode }: ImageConverterProps) {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>('');
   const [convertedImages, setConvertedImages] = useState<ConvertedImage[]>([]);
@@ -17,18 +21,9 @@ export default function ImageConverter() {
     rotation: 0
   });
   const [dragActive, setDragActive] = useState(false);
-
-  // Close settings menu on escape key
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setShowSettings(false);
-      }
-    };
-
-    window.addEventListener('keydown', handleEscape);
-    return () => window.removeEventListener('keydown', handleEscape);
-  }, []);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [showCropper, setShowCropper] = useState(false);
 
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -79,7 +74,7 @@ export default function ImageConverter() {
     if (!selectedImage) return;
     setIsConverting(true);
 
-    const formats: ImageFormat[] = ['png', 'jpeg', 'webp','svg'];
+    const formats: ImageFormat[] = ['png', 'jpeg', 'webp', 'svg'];
     const converted: ConvertedImage[] = [];
 
     for (const format of formats) {
@@ -105,6 +100,9 @@ export default function ImageConverter() {
       height: 600,
       rotation: 0
     });
+    setShowCropper(false);
+    setZoom(1);
+    setCrop({ x: 0, y: 0 });
   };
 
   const updateSettings = (key: keyof ImageSettings, value: number) => {
@@ -113,6 +111,10 @@ export default function ImageConverter() {
       [key]: value
     }));
   };
+
+  const handleCropComplete = useCallback((croppedArea: any, croppedAreaPixels: any) => {
+    console.log(croppedArea, croppedAreaPixels);
+  }, []);
 
   return (
     <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'}`}>
@@ -124,68 +126,53 @@ export default function ImageConverter() {
         isDarkMode={isDarkMode}
       />
 
-      {/* Header */}
-      <header className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} shadow-lg`}>
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-2">
-              <ImageIcon className="w-8 h-8 text-blue-500" />
-              <h1 className="text-2xl font-bold">ImageMorph</h1>
-            </div>
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => setShowSettings(!showSettings)}
-                className={`p-2 rounded-full ${isDarkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-100 hover:bg-gray-200'}`}
-                title="Image Settings"
-              >
-                <Settings className="w-5 h-5" />
-              </button>
-              <button
-                onClick={() => setIsDarkMode(!isDarkMode)}
-                className={`p-2 rounded-full ${isDarkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-100 hover:bg-gray-200'}`}
-              >
-                {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
-
       <main className="container mx-auto px-4 py-8">
-        {/* Upload Section */}
-        <div
-          className={`mb-8 p-8 rounded-xl border-2 border-dashed transition-colors ${
-            dragActive
-              ? 'border-blue-500 bg-blue-50'
-              : isDarkMode
-              ? 'border-gray-700 bg-gray-800'
-              : 'border-gray-300 bg-white'
-          } text-center`}
-          onDragEnter={handleDrag}
-          onDragLeave={handleDrag}
-          onDragOver={handleDrag}
-          onDrop={handleDrop}
-        >
-          <input
-            type="file"
-            id="imageUpload"
-            className="hidden"
-            accept="image/*"
-            onChange={handleImageUpload}
-          />
-          <label
-            htmlFor="imageUpload"
-            className="cursor-pointer flex flex-col items-center space-y-4"
+        <div className="flex justify-end mb-4">
+          <button
+            onClick={() => setShowSettings(true)}
+            className={`p-2 rounded-full ${isDarkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-100 hover:bg-gray-200'}`}
+            title="Settings"
           >
-            <Upload className={`w-12 h-12 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`} />
-            <div className="text-lg font-medium">
-              Drop your image here or click to upload
-            </div>
-            <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-              Supports PNG, JPG, WEBP
-            </p>
-          </label>
+            <Settings className="w-5 h-5" />
+          </button>
         </div>
+
+        {/* Upload Section */}
+        {!selectedImage && (
+          <div
+            className={`mb-8 p-8 rounded-xl border-2 border-dashed transition-colors ${
+              dragActive
+                ? 'border-blue-500 bg-blue-50'
+                : isDarkMode
+                ? 'border-gray-700 bg-gray-800'
+                : 'border-gray-300 bg-white'
+            } text-center`}
+            onDragEnter={handleDrag}
+            onDragLeave={handleDrag}
+            onDragOver={handleDrag}
+            onDrop={handleDrop}
+          >
+            <input
+              type="file"
+              id="imageUpload"
+              className="hidden"
+              accept="image/*"
+              onChange={handleImageUpload}
+            />
+            <label
+              htmlFor="imageUpload"
+              className="cursor-pointer flex flex-col items-center space-y-4"
+            >
+              <Upload className={`w-12 h-12 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`} />
+              <div className="text-lg font-medium">
+                Drop your image here or click to upload
+              </div>
+              <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                Supports PNG, JPG, WEBP
+              </p>
+            </label>
+          </div>
+        )}
 
         {/* Preview Section */}
         {previewUrl && (
@@ -205,13 +192,25 @@ export default function ImageConverter() {
                 </button>
               </div>
             </div>
-            <div className="flex justify-center mb-4">
-              <img
-                src={previewUrl}
-                alt="Preview"
-                className="max-w-full h-auto max-h-96 rounded-lg"
-                style={{ transform: `rotate(${settings.rotation}deg)` }}
-              />
+            <div className="relative h-96 mb-4">
+              {showCropper ? (
+                <Cropper
+                  image={previewUrl}
+                  crop={crop}
+                  zoom={zoom}
+                  aspect={4 / 3}
+                  onCropChange={setCrop}
+                  onZoomChange={setZoom}
+                  onCropComplete={handleCropComplete}
+                />
+              ) : (
+                <img
+                  src={previewUrl}
+                  alt="Preview"
+                  className="max-w-full h-auto max-h-96 rounded-lg mx-auto"
+                  style={{ transform: `rotate(${settings.rotation}deg)` }}
+                />
+              )}
             </div>
             <div className="flex justify-center space-x-4 mb-4">
               <button
@@ -226,19 +225,24 @@ export default function ImageConverter() {
               <button
                 className={`p-2 rounded-lg ${
                   isDarkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-100 hover:bg-gray-200'
-                }`}
+                } ${showCropper ? 'bg-blue-500 text-white' : ''}`}
                 title="Crop"
+                onClick={() => setShowCropper(!showCropper)}
               >
                 <Crop className="w-5 h-5" />
               </button>
-              <button
-                className={`p-2 rounded-lg ${
-                  isDarkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-100 hover:bg-gray-200'
-                }`}
-                title="Zoom"
-              >
-                <ZoomIn className="w-5 h-5" />
-              </button>
+              {showCropper && (
+                <input
+                  type="range"
+                  value={zoom}
+                  min={1}
+                  max={3}
+                  step={0.1}
+                  aria-labelledby="Zoom"
+                  onChange={(e) => setZoom(Number(e.target.value))}
+                  className="w-32"
+                />
+              )}
             </div>
             <button
               onClick={convertImage}
@@ -288,15 +292,6 @@ export default function ImageConverter() {
           </div>
         )}
       </main>
-
-      {/* Footer */}
-      <footer className={`mt-8 py-6 ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
-        <div className="container mx-auto px-4 text-center">
-          <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-            ImageMorph - Convert your images with ease
-          </p>
-        </div>
-      </footer>
     </div>
   );
 }
