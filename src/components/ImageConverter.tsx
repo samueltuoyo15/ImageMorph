@@ -292,6 +292,10 @@ export default function ImageConverter({ isDarkMode }: ImageConverterProps) {
           </div>
         )}
       </main>
+
+      <div className="mt-8 text-center text-sm text-gray-500">
+        <p>Built with ❤️ by Abiola</p>
+      </div>
     </div>
   );
 }

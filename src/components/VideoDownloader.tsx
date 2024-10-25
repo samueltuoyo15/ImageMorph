@@ -89,7 +89,7 @@ const VideoDownloader: React.FC<VideoDownloaderProps> = ({ isDarkMode }) => {
       </div>
 
       <div className="mt-8 text-center text-sm text-gray-500">
-        <p>Note: This tool is for personal use only. Please respect copyright laws and terms of service.</p>
+        <p>Built with ❤️ by Abiola</p>
       </div>
     </div>
   );

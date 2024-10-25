@@ -233,7 +233,7 @@ export default function BackgroundRemover({ isDarkMode }: BackgroundRemoverProps
       )}
 
       <div className="mt-8 text-center text-sm text-gray-500">
-        <p>Powered by remove.bg API - Fast and accurate background removal</p>
+        <p>Built with ❤️ by Abiola</p>
       </div>
     </div>
   );
