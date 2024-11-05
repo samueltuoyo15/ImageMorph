@@ -20,21 +20,29 @@ const VideoDownloader: React.FC<VideoDownloaderProps> = ({ isDarkMode }) => {
   const [downloadLink, setDownloadLink] = useState('');
 
   const handleDownload = async () => {
-    if (!url) {
-      setError('Please enter a valid URL');
-      return;
-    }
-
-    setIsDownloading(true);
-    setError('');
-    setDownloadLink('');
-
     try {
-      // Simulate video download process
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      // In real implementation, this would handle the actual video download
-    } catch (error) {
-      setError('Failed to download video. Please try again.');
+      setIsDownloading(true);
+      setError('');
+      setDownloadLink('');
+
+      const response = await fetch('https://social-media-video-downloader-api.onrender.com/download-video', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ videoURL: url }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to download video');
+      }
+
+     const downloadLink = window.URL.createObjectURL(await response.blob());
+      setDownloadLink(downloadLink);
+
+    } catch (error: any) {
+      console.error(error.message, error);
+      setError('Invalid url please check the url');
     } finally {
       setIsDownloading(false);
     }
@@ -44,7 +52,6 @@ const VideoDownloader: React.FC<VideoDownloaderProps> = ({ isDarkMode }) => {
     <div className={`max-w-2xl mx-auto ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'}`}>
       <div className={`p-8 rounded-xl shadow-lg ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
         <h2 className="text-2xl font-bold mb-6">Download Videos</h2>
-        
         <div className="mb-8">
           <div className="flex items-center space-x-2 mb-2">
             <Link className="w-5 h-5 text-gray-500" />
@@ -60,9 +67,7 @@ const VideoDownloader: React.FC<VideoDownloaderProps> = ({ isDarkMode }) => {
             placeholder="Paste video URL here..."
             className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
-          {error && (
-            <p className="mt-2 text-red-500 text-sm">{error}</p>
-          )}
+          {error && <p className="mt-2 text-red-500 text-sm">{error}</p>}
         </div>
 
         <button
@@ -72,24 +77,20 @@ const VideoDownloader: React.FC<VideoDownloaderProps> = ({ isDarkMode }) => {
             ${(isDownloading || !url) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-600'}`}
         >
           <Download className="w-5 h-5" />
-          <span>{isDownloading ? 'Downloading...' : 'Download Video'}</span>
+          <span>{isDownloading ? 'Checking Video Info...' : 'Download Video'}</span>
         </button>
 
         {downloadLink && (
           <div className="mt-4">
-            <a
-              href={downloadLink}
-              download
-              className="text-blue-500 hover:text-blue-600"
-            >
+            <a download href={downloadLink} className="text-blue-500 hover:text-blue-600">
               Click here to download your video
             </a>
           </div>
         )}
       </div>
-
+      
       <div className="mt-8 text-center text-sm text-gray-500">
-        <p>Built with ❤️ by Abiola</p>
+        <p>Built with ❤️ by Abiola & Samuel</p>
       </div>
     </div>
   );
