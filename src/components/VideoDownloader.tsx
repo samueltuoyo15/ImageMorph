@@ -25,7 +25,7 @@ const VideoDownloader: React.FC<VideoDownloaderProps> = ({ isDarkMode }) => {
       setError('');
       setDownloadLink('');
 
-      const response = await fetch('http://localhost:3000/download-video', {
+      const response = await fetch('https://social-media-video-downloader-api.onrender.com/download-video', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -77,7 +77,7 @@ const VideoDownloader: React.FC<VideoDownloaderProps> = ({ isDarkMode }) => {
             ${(isDownloading || !url) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-600'}`}
         >
           <Download className="w-5 h-5" />
-          <span>{isDownloading ? 'Downloading...' : 'Download Video'}</span>
+          <span>{isDownloading ? 'Checking Video Info...' : 'Download Video'}</span>
         </button>
 
         {downloadLink && (
