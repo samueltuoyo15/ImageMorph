@@ -41,7 +41,6 @@ const handleDownload = async () => {
     }
 
     const data = await response.json();
-    console.log(data);
     setVideoData(data);
 
     if (data.mediaUrls && data.mediaUrls.length > 0) {
