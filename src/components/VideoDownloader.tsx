@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { Download, Link } from 'lucide-react';
-import {FaFacebook, FaYoutube, FaInstagram, FaTwitter, FaTiktok, FaLinkedin} from 'react-icons/fa';
+import { FaFacebook, FaYoutube, FaInstagram, FaTwitter, FaTiktok, FaLinkedin } from 'react-icons/fa';
 
 const SUPPORTED_PLATFORMS = [
   { name: 'Facebook', icon: <FaFacebook className="text-blue-500" /> },
@@ -8,68 +7,82 @@ const SUPPORTED_PLATFORMS = [
   { name: 'Instagram', icon: <FaInstagram className="text-pink-500" /> },
   { name: 'Twitter', icon: <FaTwitter className="text-blue-500" /> },
   { name: 'TikTok', icon: <FaTiktok className="text-black" /> },
-  { name: 'LinkedIn', icon: <FaLinkedin className="text-black text-blue-500" /> }
+  { name: 'LinkedIn', icon: <FaLinkedin className="text-blue-500" /> },
 ];
 
-interface VideoDownloaderProps {
-  isDarkMode: boolean;
-}
-
-const VideoDownloader: React.FC<VideoDownloaderProps> = ({ isDarkMode }) => {
+const VideoDownloader = ({ isDarkMode }) => {
   const [url, setUrl] = useState('');
   const [isDownloading, setIsDownloading] = useState(false);
   const [error, setError] = useState('');
-  const [videoData, setVideoData] = useState<any>(null);
-  const [selectedUrl, setSelectedUrl] = useState(''); 
+  const [videoData, setVideoData] = useState(null);
+  const [selectedUrl, setSelectedUrl] = useState('');
 
-const handleDownload = async () => {
-  try {
+  const API_KEY = import.meta.env.VITE_API_KEY;
+  console.log(API_KEY);
+  const API_HOST = 'social-download-all-in-one.p.rapidapi.com';
+
+  const handleDownload = async () => {
     setIsDownloading(true);
     setError('');
     setVideoData(null);
 
-    const response = await fetch('https://social-media-video-downloader-api.onrender.com/download-video', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ videoURL: url }),
-    });
+    try {
+      const response = await fetch(
+        `https://${API_HOST}/v1/social/autolink`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-RapidAPI-Key': API_KEY,
+            'X-RapidAPI-Host': API_HOST,
+          },
+          body: JSON.stringify({ url }),
+        }
+      );
 
-    if (!response.ok) {
-      throw new Error('Failed to fetch video data');
+      if (!response.ok) {
+        throw new Error('Failed to fetch video data.');
+      }
+
+      const data = await response.json();
+      setVideoData(data);
+
+      if (data.medias && data.medias.length > 0) {
+        setSelectedUrl(data.medias[0].url);
+      }
+    } catch (err) {
+      console.error(err);
+      setError('Something went wrong. Please check the URL or try again.');
+    } finally {
+      setIsDownloading(false);
     }
+  };
 
-    const data = await response.json();
-    setVideoData(data);
+  const triggerFileDownload = async (mediaUrl) => {
+    try {
+      setError('');
+      setIsDownloading(true);
 
-    if (data.mediaUrls && data.mediaUrls.length > 0) {
-      const videoUrl = data.mediaUrls[0].url;
-
-     const videoResponse = await fetch(videoUrl);
-      const videoBlob = await videoResponse.blob();
-    const blobUrl = URL.createObjectURL(videoBlob);
-      setSelectedUrl(blobUrl);
+      const proxyUrl = `/download?url=${encodeURIComponent(mediaUrl)}`;
+      const link = document.createElement('a');
+      link.href = proxyUrl;
+      link.download = '';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      console.error('Download failed:', err);
+      setError('Failed to download the video. Please try again.');
+    } finally {
+      setIsDownloading(false);
     }
-  } catch (error: any) {
-    console.error(error.message, error);
-    setError('An error occurred. Please check the URL or try again later.');
-  } finally {
-    setIsDownloading(false);
-  }
-};
-
-
-
-  const handleMediaSelection = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedUrl(event.target.value);
   };
 
   return (
     <div className={`max-w-2xl mx-auto ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'}`}>
       <div className={`p-8 rounded-xl shadow-lg ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
-        <h2 className="text-2xl font-bold mb-6">Download Videos</h2>
-          <div className="flex items-center justify-center space-x-4 mb-6">
+        <h2 className="text-2xl font-bold mb-6">Video Downloader</h2>
+        <div className="flex items-center justify-center space-x-4 mb-6">
           {SUPPORTED_PLATFORMS.map((platform) => (
             <span key={platform.name} className="text-3xl">
               {platform.icon}
@@ -77,63 +90,73 @@ const handleDownload = async () => {
           ))}
         </div>
         <div className="mb-8">
-          <div className="flex items-center space-x-2 mb-2">
-            <Link className={`w-5 h-5 text-gray-500 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}/>
-            <label htmlFor="videoUrl" className="font-medium">
-              Video URL
-            </label>
-          </div>
+          <label htmlFor="videoUrl" className="font-medium block mb-2">
+            Enter Video URL
+          </label>
           <input
             type="url"
             id="videoUrl"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            placeholder="Paste video URL here..."
-            className={`w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'}`}
+            placeholder="Paste the video URL here..."
+            className={`w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-blue-500 ${
+              isDarkMode ? 'bg-gray-900 text-white border-gray-700' : 'bg-white text-gray-900 border-gray-300'
+            }`}
           />
-          {error && <p className="mt-2 text-red-500 text-sm">{error}</p>}
+          {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
         </div>
-
         <button
           onClick={handleDownload}
           disabled={isDownloading || !url}
-          className={`w-full py-3 px-4 rounded-lg bg-blue-500 text-white font-medium flex items-center cursor-pointer justify-center space-x-2
-            ${(isDownloading || !url) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-600'}`}
+          className={`w-full py-3 rounded-lg bg-blue-500 text-white font-medium ${
+            isDownloading || !url ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-600'
+          }`}
         >
-          <span>{isDownloading ? 'Checking Video Info...' : 'Continue'}</span>
+          {isDownloading ? 'Fetching Video Info...' : 'Get Video'}
         </button>
-
-       {videoData && (
-          <div className={`mt-6 p-4 rounded-2xl shadow-lg ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'}`}>
-            {videoData.image && <img src={videoData.image} className="w-full mb-3 rounded-lg shadow-md" />}
-            {videoData.title && <p className="text-xl font-semibold mb-3 text-center">{videoData.title}</p>}
-            {videoData.source && <p className="text-sm text-gray-600 mb-3 text-center">Source: {videoData.source}</p>}
-            {videoData.duration && <p className="text-sm text-gray-600 mb-3 text-center">Duration: {videoData.duration} seconds</p>}
-
+        {videoData && (
+          <div className="mt-6 p-4 rounded-lg border">
+            <h3 className="text-lg font-bold mb-4">Video Details</h3>
+            {videoData.thumbnail && <img src={videoData.thumbnail} alt="Video Thumbnail" className="w-full rounded-md mb-4" />}
+            <p className="text-gray-700 mb-2">
+              <strong>Title:</strong> {videoData.title}
+            </p>
+            <p className="text-gray-700 mb-2">
+              <strong>Source:</strong> {videoData.source}
+            </p>
+            <p className="text-gray-700">
+              <strong>Duration:</strong> {videoData.duration} seconds
+            </p>
             <div className="mt-4">
-              <label htmlFor="qualitySelect" className="block mb-2 text-gray-600 text-sm text-center">Select Quality</label>
+              <label htmlFor="qualitySelect" className="block mb-2">
+                Select Quality
+              </label>
               <select
                 id="qualitySelect"
-                onChange={handleMediaSelection}
-                className="w-full p-2 mb-4 border border-gray-300 rounded-full text-gray-700 bg-white focus:ring-2 focus:ring-blue-500"
+                onChange={(e) => setSelectedUrl(e.target.value)}
+                className="w-full p-2 rounded-md border"
               >
-                {videoData.mediaUrls.map((media: { url: string; quality: string }, index: number) => (
-                  <option key={index} value={media.url}>Quality {media.quality}</option>
+                {videoData.medias.map((media, index) => (
+                  <option key={index} value={media.url}>
+                    Quality {media.quality}
+                  </option>
                 ))}
               </select>
             </div>
-            <a download href={selectedUrl} className="w-full bg-blue-500 hover:bg-blue-600 text-white p-2 rounded flex items-center justify-center font-medium transition transform cursor-pointer hover:scale-105">
-              <Download className="w-5 h-5 inline mr-2" /> Download
-            </a>
+            <button
+              onClick={() => triggerFileDownload(selectedUrl)}
+              disabled={!selectedUrl}
+              className={`w-full mt-4 bg-blue-500 text-white p-3 rounded-md ${
+                selectedUrl ? 'hover:bg-blue-600' : 'opacity-50 cursor-not-allowed'
+              }`}
+            >
+              Download Video
+            </button>
           </div>
         )}
-      </div>
-      <div className="mt-8 text-center text-sm text-gray-500">
-        <p>Built with ❤️ by Abiola & Samuel</p>
       </div>
     </div>
   );
 };
 
 export default VideoDownloader;
-                     
