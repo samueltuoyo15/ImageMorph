@@ -23,7 +23,7 @@ const VideoDownloader = ({ isDarkMode }) => {
     setVideoData(null);
 
     try {
-      const response = await fetch(`http://localhost:10000/download?url=${url}`);
+      const response = await fetch(`https://api-image-morph.vercel.app/download?url=${url}`);
 
       if (!response.ok) {
         throw new Error('Failed to fetch video data.');
