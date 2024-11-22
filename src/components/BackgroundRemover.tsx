@@ -70,7 +70,7 @@ const removeBackground = async () => {
   formData.append('image_file', selectedImage);
 
   try {
-    const response = await axios.post('http://localhost:10000/remove-bg', formData, {
+    const response = await axios.post('https://api-image-morph.vercel.app/remove-bg', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
    console.log(response.data.processedImage)
