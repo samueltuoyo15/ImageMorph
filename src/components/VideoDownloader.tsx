@@ -23,7 +23,7 @@ const VideoDownloader = ({ isDarkMode }) => {
     setVideoData(null);
 
     try {
-      const response = await fetch(`https://proxy-h8gy.onrender.com/download?url=${url}`);
+      const response = await fetch(`http://localhost:10000/download?url=${url}`);
 
       if (!response.ok) {
         throw new Error('Failed to fetch video data.');
