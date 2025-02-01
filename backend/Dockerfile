@@ -1,8 +1,8 @@
 # Use the latest official Go image that supports Go 1.23.4+
 FROM golang:1.23.4-alpine  
 
-# Install system dependencies
-RUN apk update && apk add --no-cache python3 py3-pip libwebp  
+# Install system dependencies (including WebP support)
+RUN apk update && apk add --no-cache python3 py3-pip libwebp libwebp-dev build-base  
 
 # Create a virtual environment for Python packages
 RUN python3 -m venv /opt/venv  
@@ -12,6 +12,9 @@ RUN /opt/venv/bin/pip install --no-cache-dir yt-dlp
 
 # Set environment variable so the app uses the virtual environment
 ENV PATH="/opt/venv/bin:$PATH"  
+
+# Enable CGO for WebP support
+ENV CGO_ENABLED=1
 
 # Set the working directory
 WORKDIR /app  
