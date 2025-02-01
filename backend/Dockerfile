@@ -1,38 +1,27 @@
-# Use an official lightweight Go image
-FROM golang:1.23 as builder
-
-# Set working directory inside the container
-WORKDIR /app
-
-# Copy backend files
-COPY . .
+# Use an official Go image as the base
+FROM golang:1.21-alpine  
 
 # Install system dependencies
-RUN apt-get update && apt-get install -y python3 python3-pip libwebp-dev
+RUN apk update && apk add --no-cache python3 py3-pip libwebp  
 
-# Install Python packages
-RUN pip3 install yt-dlp
+# Install yt-dlp using pip
+RUN pip3 install --no-cache-dir yt-dlp  
 
-# Download Go dependencies and build the binary
-RUN go mod tidy && go build -o server .
+# Set the working directory
+WORKDIR /app  
 
-# Use a smaller runtime image
-FROM debian:bullseye-slim
+# Copy Go files and dependencies
+COPY go.mod go.sum ./
+RUN go mod tidy  
 
-# Set working directory inside the container
-WORKDIR /app
+# Copy the entire backend source code
+COPY . .  
 
-# Copy the built Go binary from the builder stage
-COPY --from=builder /app/server .
+# Build the Go application
+RUN go build -o server .  
 
-# Copy required system dependencies
-RUN apt-get update && apt-get install -y python3 python3-pip libwebp-dev
+# Expose the port your Go app runs on
+EXPOSE 8080  
 
-# Install Python packages again in the runtime container
-RUN pip3 install yt-dlp
-
-# Expose the port your Go app listens on
-EXPOSE 8080
-
-# Run the Go server
+# Run the application
 CMD ["./server"]
