@@ -1,0 +1,7 @@
+node_modules
+frontend
+Dockerfile
+.dockerignore
+.git
+.gitignore
+.env
