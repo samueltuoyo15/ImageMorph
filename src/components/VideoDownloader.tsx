@@ -17,21 +17,20 @@ const VideoDownloader = ({ isDarkMode }) => {
   const [videoData, setVideoData] = useState(null);
   const [selectedUrl, setSelectedUrl] = useState('');
 
-  const handleDownload = async () => {
+  const handleFetch = async () => {
     setIsDownloading(true);
     setError('');
     setVideoData(null);
 
     try {
       const response = await fetch(`http://localhost:8080/download?url=${url.trim()}`);
-
       if (!response.ok) {
         throw new Error('Failed to fetch video data.');
       }
 
       const data = await response.json();
       setVideoData(data);
-      console.log(data)
+      console.log(data);
 
       if (data.links && data.links.length > 0) {
         setSelectedUrl(data.links[0].link);
@@ -41,6 +40,21 @@ const VideoDownloader = ({ isDarkMode }) => {
       setError('Something went wrong. Please check the URL or try again.');
     } finally {
       setIsDownloading(false);
+    }
+  };
+
+  const downloadVideo = async (link) => {
+    try {
+      const response = await fetch(link);
+      const blob = await response.blob();
+      const newLink = URL.createObjectURL(blob);
+      const downloadLink = document.createElement('a');
+      downloadLink.download = 'video.mp4'; 
+      downloadLink.href = newLink;
+      downloadLink.click();
+      URL.revokeObjectURL(newLink);
+    } catch (error) {
+      console.error('Error downloading video:', error);
     }
   };
 
@@ -54,8 +68,14 @@ const VideoDownloader = ({ isDarkMode }) => {
 
   const cardStyles = isDarkMode ? 'bg-gray-800' : 'bg-white';
 
+  const formatDuration = (duration) => {
+    const minutes = Math.floor(duration / 60);
+    const seconds = duration % 60;
+    return `${minutes}m ${seconds}s`;
+  };
+
   return (
-    <div className={`max-w-2xl mx-auto ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'}`}>
+    <div onContextMenu={(e) => e.preventDefault()} className={`max-w-2xl mx-auto ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'} select-none`}>
       <div className={`p-8 rounded-xl shadow-lg ${cardStyles}`}>
         <h2 className="text-2xl font-bold mb-6">Video Downloader</h2>
         <div className="flex items-center justify-center space-x-4 mb-6">
@@ -82,7 +102,7 @@ const VideoDownloader = ({ isDarkMode }) => {
         </div>
 
         <button
-          onClick={handleDownload}
+          onClick={handleFetch}
           disabled={isDownloading || !url}
           className={`w-full py-3 rounded-lg bg-blue-500 text-white font-medium ${buttonStyles}`}
         >
@@ -92,15 +112,17 @@ const VideoDownloader = ({ isDarkMode }) => {
         {videoData && (
           <div className="mt-6 p-4 rounded-lg border">
             <h3 className="text-lg font-bold mb-4">Video Details</h3>
-            <p className={`isDarkMode ? "text-white" : "text-gray-700"} mb-2`}>
-            {videoData.thumbnail && <img src={videoData.thumbnail} alt="Video Thumbnail" className="w-full rounded-md mb-4" />}
+            {videoData.thumbnail && (
+              <img src={videoData.thumbnail} alt="Video Thumbnail" className="w-full rounded-md mb-4" />
+            )}
+            <p className={`${isDarkMode ? 'text-white' : 'text-gray-700'} mb-2`}>
               <strong>Title:</strong> {videoData.title}
             </p>
-            <p className={`isDarkMode ? "text-white" : "text-gray-700"} mb-2`}>
+            <p className={`${isDarkMode ? 'text-white' : 'text-gray-700'} mb-2`}>
               <strong>Category:</strong> {videoData.category}
             </p>
-             <p className={`isDarkMode ? "text-white" : "text-gray-700"} mb-2`}>
-              <strong>Duration:</strong> {videoData.duration} milleseconds
+            <p className={`${isDarkMode ? 'text-white' : 'text-gray-700'} mb-2`}>
+              <strong>Duration:</strong> {formatDuration(videoData.duration)}
             </p>
 
             {videoData.links && videoData.links.length > 0 && (
@@ -122,19 +144,22 @@ const VideoDownloader = ({ isDarkMode }) => {
               </div>
             )}
 
-            <a
-              download
-              href={selectedUrl}
+            <button
+              type="button"
+              onClick={() => downloadVideo(selectedUrl)}
               style={{
                 pointerEvents: !selectedUrl ? 'none' : 'auto',
                 opacity: !selectedUrl ? 0.5 : 1,
               }}
-              className="block w-full mt-4 bg-blue-500 text-center text-white p-3 rounded-md hover:bg-blue-600"
+              className="cursor-pointer block w-full mt-4 bg-blue-500 text-center text-white p-3 rounded-md hover:bg-blue-600"
             >
               Download Video
-            </a>
+            </button>
           </div>
         )}
+      </div>
+      <div className="mt-8 text-center text-sm text-gray-500">
+        <p>Built with ❤️ by Abiola & Samuel Tuoyo</p>
       </div>
     </div>
   );

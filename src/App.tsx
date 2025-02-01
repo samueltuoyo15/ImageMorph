@@ -30,7 +30,7 @@ function App() {
   }
 
   return (
-    <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-light-mode text-gray-900'}`}>
+    <div onContextMenu={(e) => e.preventDefault()}  className={`min-h-screen ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-light-mode text-gray-900'} select-none`}>
       <div className="container mx-auto px-4 py-8">
         <header className="flex justify-between items-center mb-8">
           <div className="flex items-center space-x-2">

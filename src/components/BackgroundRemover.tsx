@@ -92,7 +92,7 @@ const removeBackground = async () => {
   };
 
   return (
-    <div className={`max-w-4xl mx-auto ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'}`}>
+    <div onContextMenu={(e) => e.preventDefault()} className={`max-w-4xl mx-auto ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'} select-none`}>
       {error && (
         <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center space-x-2 text-red-600">
           <AlertCircle className="w-5 h-5" />
@@ -206,7 +206,7 @@ const removeBackground = async () => {
       )}
 
       <div className="mt-8 text-center text-sm text-gray-500">
-        <p>Built with ❤️ by Abiola</p>
+        <p>Built with ❤️ by Abiola & Samuel Tuoyo</p>
       </div>
     </div>
   );

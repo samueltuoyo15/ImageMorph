@@ -124,4 +124,3 @@ func fetchVideoData(videoURL string) (VideoMetadata, error) {
 	return videoData, nil
 }
 
-
