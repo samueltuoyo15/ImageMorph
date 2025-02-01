@@ -63,7 +63,7 @@ export default function ImageConverter({ isDarkMode }: ImageConverterProps) {
   formData.append("image", file);
 
   try {
-    const response = await fetch("http://localhost:8080/convert", {
+    const response = await fetch("https://imagemorph.onrender.com/convert", {
       method: "POST",
       body: formData,
     });

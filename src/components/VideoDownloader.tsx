@@ -23,7 +23,7 @@ const VideoDownloader = ({ isDarkMode }) => {
     setVideoData(null);
 
     try {
-      const response = await fetch(`http://localhost:8080/download?url=${url.trim()}`);
+      const response = await fetch(`https://imagemorph.onrender.com/download?url=${url.trim()}`);
       if (!response.ok) {
         throw new Error('Failed to fetch video data.');
       }
