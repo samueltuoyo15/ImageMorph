@@ -55,12 +55,33 @@ export default function ImageConverter({ isDarkMode }: ImageConverterProps) {
     reader.readAsDataURL(file);
   };
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      handleImageSelection(file);
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const file = event.target.files?.[0];
+  if (!file) return;
+
+  const formData = new FormData();
+  formData.append("image", file);
+
+  try {
+    const response = await fetch("http://localhost:8080/convert", {
+      method: "POST",
+      body: formData,
+    });
+
+    const result = await response.json();
+    console.log("Converted Images:", result.urls);
+    if (result.images) {
+      setConvertedImages(result.images.map((img: { url: string; size: number }) => ({
+        format: img.url.split(".").pop(),
+        url: `http://localhost:8080${img.url}`,
+        size: formatBytes(img.size), 
+      })));
     }
-  };
+  } catch (error) {
+    console.error("Upload failed", error);
+  }
+};
+
 
   const formatBytes = (bytes: number): string => {
     if (bytes === 0) return '0 Bytes';
@@ -74,7 +95,7 @@ export default function ImageConverter({ isDarkMode }: ImageConverterProps) {
     if (!selectedImage) return;
     setIsConverting(true);
 
-    const formats: ImageFormat[] = ['png', 'jpeg', 'webp', 'svg'];
+    const formats: ImageFormat[] = ['png', 'jpeg', 'webp', 'ico', 'webp'];
     const converted: ConvertedImage[] = [];
 
     for (const format of formats) {

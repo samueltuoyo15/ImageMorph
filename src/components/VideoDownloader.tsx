@@ -23,7 +23,7 @@ const VideoDownloader = ({ isDarkMode }) => {
     setVideoData(null);
 
     try {
-      const response = await fetch(`https://api-image-morph.vercel.app/download?url=${url}`);
+      const response = await fetch(`http://localhost:8080/download?url=${url.trim()}`);
 
       if (!response.ok) {
         throw new Error('Failed to fetch video data.');
@@ -92,15 +92,15 @@ const VideoDownloader = ({ isDarkMode }) => {
         {videoData && (
           <div className="mt-6 p-4 rounded-lg border">
             <h3 className="text-lg font-bold mb-4">Video Details</h3>
-            {videoData.picture && <img src={videoData.picture} alt="Video Thumbnail" className="w-full rounded-md mb-4" />}
-            <p className="text-gray-700 mb-2">
+            <p className={`isDarkMode ? "text-white" : "text-gray-700"} mb-2`}>
+            {videoData.thumbnail && <img src={videoData.thumbnail} alt="Video Thumbnail" className="w-full rounded-md mb-4" />}
               <strong>Title:</strong> {videoData.title}
             </p>
-            <p className="text-gray-700 mb-2">
-              <strong>Category:</strong> {videoData.stats.category}
+            <p className={`isDarkMode ? "text-white" : "text-gray-700"} mb-2`}>
+              <strong>Category:</strong> {videoData.category}
             </p>
-             <p className="text-gray-700 mb-2">
-              <strong>Duration:</strong> {videoData.links[0].approxDurationMs} milleseconds
+             <p className={`isDarkMode ? "text-white" : "text-gray-700"} mb-2`}>
+              <strong>Duration:</strong> {videoData.duration} milleseconds
             </p>
 
             {videoData.links && videoData.links.length > 0 && (
@@ -111,7 +111,7 @@ const VideoDownloader = ({ isDarkMode }) => {
                 <select
                   id="qualitySelect"
                   onChange={(e) => setSelectedUrl(e.target.value)}
-                  className="w-full p-2 rounded-md border"
+                  className="w-full p-2 bg-black text-white rounded-md border"
                 >
                   {videoData.links.map((media, index) => (
                     <option key={index} value={media.link}>
