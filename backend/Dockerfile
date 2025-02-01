@@ -4,8 +4,14 @@ FROM golang:1.21-alpine
 # Install system dependencies
 RUN apk update && apk add --no-cache python3 py3-pip libwebp  
 
-# Install yt-dlp using pip
-RUN pip3 install --no-cache-dir yt-dlp  
+# Create a virtual environment for Python packages
+RUN python3 -m venv /opt/venv  
+
+# Activate the virtual environment and install yt-dlp
+RUN /opt/venv/bin/pip install --no-cache-dir yt-dlp  
+
+# Set environment variable so the app uses the virtual environment
+ENV PATH="/opt/venv/bin:$PATH"  
 
 # Set the working directory
 WORKDIR /app  
