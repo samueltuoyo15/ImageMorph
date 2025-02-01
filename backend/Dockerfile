@@ -1,5 +1,5 @@
-# Use an official Go image as the base
-FROM golang:1.21-alpine  
+# Use the latest official Go image that supports Go 1.23.4+
+FROM golang:1.23.4-alpine  
 
 # Install system dependencies
 RUN apk update && apk add --no-cache python3 py3-pip libwebp  
